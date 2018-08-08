@@ -11,9 +11,9 @@ app.get('/' , function (request , response) {
 io.on('connection' , function (socket) {
     console.log('New User Has connected');
 
-    socket.on('newMessage' , function (data , room) {
+    socket.on('newMessage' , function (data , room , name) {
         console.log('There are new message '+data+' on Room '+ room);
-        socket.to(room).emit('clientMessage' , data);
+        socket.to(room).emit('clientMessage' , {"name" : name , "message" : data  , "type" : "message" });
     });
 
     socket.on('joinRoom' , function (data) {

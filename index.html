@@ -172,8 +172,14 @@
 </head>
 <body>
 <div class='container' id="app">
+
+    <form  v-if="!showChat" @submit.prevent="LoginWithNewUser()" action="index_submit" method="get" accept-charset="utf-8">
+      <input type="text" v-model="name"  placeholder="NicName">
+      <button type="submit">Login</button>
+    </form>
+
     <h1>{{ room == '' ? 'Chat App With 5dmat-web' : room}}</h1>
-    <div class='chatbox' >
+    <div class='chatbox'  v-if="showChat" >
         <div class='chatbox__user-list'>
             <h1>Rooms</h1>
             <div v-bind:class='room == "General" ? "chatbox__user--active" : "chatbox__user--busy"' @click="joinRoom('General')">
@@ -195,9 +201,9 @@
         <div class="chatbox__messages">
             <div class="chatbox__messages__user-message" v-for="message in messages">
                 <div class="chatbox__messages__user-message--ind-message">
-                    <p class="name">Abdel Aziz</p>
+                    <p class="name">{{ message.name }}</p>
                     <br/>
-                    <p class="message">{{ message }}</p>
+                    <p class="message">{{ message.message }}</p>
                 </div>
             </div>
         </div>
@@ -216,18 +222,23 @@
             data:{
                 messageText:'',
                 messages:[],
-                room:''
+                room:'',
+                showChat:false,
+                name:''
             },
-            mounted:function () {
-                this.joinRoom('General');
+            mounted:function () { 
                 scoket.on('clientMessage' , function(data){
                     this.messages.push(data);
                 }.bind(this));
             },
             methods:{
                 sendMessage: function () {
-                    scoket.emit('newMessage' , this.messageText , this.room);
-                    this.messages.push(this.messageText);
+                    scoket.emit('newMessage' , this.messageText , this.room, this.name);
+                    var object  = {
+                        'name':this.name,
+                        'message':this.messageText,
+                    };
+                    this.messages.push(object);
                     this.messageText = '';
                 },
                 joinRoom:function (roomName) {
@@ -237,6 +248,13 @@
                     }
                     scoket.emit('joinRoom' , roomName);
                     this.room = roomName;
+                },LoginWithNewUser:function(){
+                  if(this.name == ''){
+                    alert("Please Enter Your Name");
+                  }else{
+                    this.joinRoom('General');
+                    this.showChat = true;
+                  }
                 }
             }
         });
